@@ -14,7 +14,7 @@
 
 ![销售样例从导入到图表、解读和报告的实际操作](docs/images/workflow-demo.gif)
 
-[查看原始录屏](docs/videos/workflow.webm) · [按步骤体验](docs/DEMO.md) · [部署说明](docs/DEPLOY.md)
+[查看原始录屏](docs/videos/workflow.webm) · [按步骤体验](docs/DEMO.md) · [部署说明](docs/DEPLOY.md) · [下载 v0.1.0](https://github.com/tao706/ai-data-workbench-open-source/releases/tag/v0.1.0)
 
 ### 可视化工作室
 
