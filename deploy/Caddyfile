@@ -1,0 +1,21 @@
+{$DOMAIN} {
+  encode zstd gzip
+  header {
+    X-Content-Type-Options nosniff
+    X-Frame-Options DENY
+    Referrer-Policy strict-origin-when-cross-origin
+  }
+  handle /api/* {
+    request_body {
+      max_size 32MB
+    }
+    reverse_proxy api:3100 {
+      flush_interval -1
+    }
+  }
+  handle {
+    root * /srv
+    try_files {path} /index.html
+    file_server
+  }
+}

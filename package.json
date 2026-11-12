@@ -1,0 +1,14 @@
+{
+  "name": "ai-data-workbench",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -k -n api,web \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "build": "npm run build --prefix backend && npm run build --prefix frontend",
+    "test": "npm run build --prefix backend && node --test backend/tests/*.test.js",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "concurrently": "^9.2.1"
+  }
+}

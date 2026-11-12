@@ -1,0 +1,13 @@
+**/node_modules
+**/dist
+**/.venv
+**/__pycache__
+.git
+.env
+.env.*
+!.env.example
+!deploy/production.env.example
+backend/data
+backend/uploads
+analysis-service/output
+test-results

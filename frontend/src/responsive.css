@@ -1,0 +1,11 @@
+@media (max-width: 1000px) {
+  .login-shell { grid-template-columns: 1fr; }
+  .login-hero { display: none; }
+}
+.select-line .control { min-width: 0; }
+.select-line .button { white-space: nowrap; flex-shrink: 0; }
+@media print {
+  .split { display: block; }
+  .split > .card { display: none; }
+  .report-sheet { min-height: 0; }
+}
