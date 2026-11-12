@@ -1,0 +1,44 @@
+name: Publish v0.1.0
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/release.yml'
+permissions:
+  contents: write
+concurrency:
+  group: release-v0.1.0
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: f14893dd06c2542fa1648d44e7e38f45570af69c
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci && npm ci --prefix backend && npm ci --prefix frontend
+      - run: npm run build && npm test
+      - run: pip install -r analysis-service/requirements.txt
+      - run: python -m unittest discover -s analysis-service -p 'test_*.py'
+      - name: Package tagged source
+        run: |
+          git archive --format=zip --prefix=ai-data-workbench/ --output=ai-data-workbench-v0.1.0.zip HEAD
+          sha256sum ai-data-workbench-v0.1.0.zip > ai-data-workbench-v0.1.0.zip.sha256
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if gh release view v0.1.0 >/dev/null 2>&1; then
+            echo 'Release v0.1.0 already exists; leaving it unchanged.'
+          else
+            gh release create v0.1.0 --target f14893dd06c2542fa1648d44e7e38f45570af69c --title 'v0.1.0 · AI 数据分析与可视化工作台' --notes-file docs/RELEASE-v0.1.0.md ai-data-workbench-v0.1.0.zip ai-data-workbench-v0.1.0.zip.sha256
+          fi
