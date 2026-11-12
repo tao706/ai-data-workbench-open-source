@@ -6,6 +6,37 @@
 
 [功能](#功能) · [架构](#架构) · [工程实现](#工程实现) · [技术栈](#技术栈) · [本地运行](#本地运行) · [验证](#验证)
 
+[![Build and test](https://github.com/tao706/ai-data-workbench-open-source/actions/workflows/ci.yml/badge.svg)](https://github.com/tao706/ai-data-workbench-open-source/actions/workflows/ci.yml)
+
+## 实际操作
+
+注册账号、导入销售示例、保存月度销售额图表、确认分析计划，再把图表加入报告。下面录制来自本地应用的实际操作，使用项目自带的 12 行销售数据。AI 部分使用演示解读。
+
+![销售样例从导入到图表、解读和报告的实际操作](docs/images/workflow-demo.gif)
+
+[查看原始录屏](docs/videos/workflow.webm) · [按步骤体验](docs/DEMO.md) · [部署说明](docs/DEPLOY.md)
+
+### 可视化工作室
+
+按月份汇总销售额，设置图表标题、配色并保存配置。
+
+![月度销售额图表与字段配置](docs/images/studio.png)
+
+<details>
+<summary>更多界面：总览、数据集、AI 分析与报告</summary>
+
+![项目总览与近期操作](docs/images/overview.png)
+
+![数据集导入与管理](docs/images/datasets.png)
+
+![分析计划、演示解读与计算结果](docs/images/assistant.png)
+
+![文字和已保存图表组成的报告](docs/images/report.png)
+
+</details>
+
+录制中的数据、账号和项目均为示例，不代表业务收益或性能测试结果。
+
 ## 功能
 
 | 模块 | 当前实现 |
@@ -129,10 +160,12 @@ docs/              架构和交付说明
 - MySQL 当前保存整份 JSON 状态，尚未使用独立业务表；不适合直接承载高并发多用户场景。
 - 报告 PDF 依赖浏览器打印，没有独立的服务端 PDF 渲染。
 - 模型解读基于已计算的统计结果，不做 RAG 检索；没有模型密钥时明确使用演示解读。
-- 公网使用前还需 HTTPS、独立的会话密钥、登录与注册限流、演示账号处理、备份和安全测试。
+- 生产启动已校验会话密钥和 HTTPS 来源、关闭默认演示账号，并对登录注册限流；备份恢复、容量和安全测试仍需在目标环境完成。
 
 单机容器部署配置见 [部署说明](docs/DEPLOY.md)，容器启动尚待 Docker 环境验收。上传的数据文件、状态文件和 `.env` 属于本地运行数据，不应提交到公开仓库。
 
 ## 许可
 
 自有代码采用 [MIT](LICENSE)。第三方依赖遵循各自许可证。
+
+版本变更见 [CHANGELOG](CHANGELOG.md)，本地验证范围见 [验证记录](docs/VERIFICATION.md)。

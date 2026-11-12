@@ -1,0 +1,54 @@
+import { test, expect } from '@playwright/test';
+import { mkdir } from 'node:fs/promises';
+
+test.use({ viewport: { width: 1600, height: 1000 }, video: 'on' });
+
+test('销售样例的实际操作与截图', async ({ page }) => {
+  test.setTimeout(120_000);
+  await mkdir('docs/images', { recursive: true });
+  const capture = async (name: string) => {
+    await page.evaluate(() => document.fonts.ready);
+    await page.screenshot({ path: `docs/images/${name}.png`, fullPage: true, animations: 'disabled' });
+  };
+  await page.goto('/login');
+  await page.getByRole('button', { name: '注册账号' }).click();
+  await page.getByLabel('邮箱地址').fill(`showcase-${Date.now()}@example.com`);
+  await page.getByLabel('显示名称').fill('示例用户');
+  await page.getByLabel('设置密码').fill('Showcase12345');
+  await page.getByLabel('确认密码').fill('Showcase12345');
+  await page.getByRole('button', { name: '创建账号并进入' }).click();
+  await page.getByRole('button', { name: '新建项目', exact: true }).click();
+  await page.getByPlaceholder('输入项目名称').fill('销售经营分析');
+  await page.getByRole('button', { name: '创建项目', exact: true }).click();
+  await page.goto('/datasets');
+  await page.getByRole('button', { name: /导入示例数据/ }).click();
+  await expect(page.getByText('示例数据已导入')).toBeVisible();
+  await capture('datasets');
+  await page.goto('/studio');
+  await page.locator('label.field').filter({ hasText: '维度 / X 轴' }).getByRole('button').click();
+  await page.getByRole('option', { name: '月份', exact: true }).click();
+  await page.locator('label.field').filter({ hasText: '指标 / Y 轴' }).getByRole('button').click();
+  await page.getByRole('option', { name: '销售额', exact: true }).click();
+  await page.locator('label.field').filter({ hasText: '聚合方式' }).getByRole('button').click();
+  await page.getByRole('option', { name: '求和', exact: true }).click();
+  await page.getByLabel('图表标题', { exact: true }).fill('月度销售额');
+  await page.getByRole('button', { name: /更新预览/ }).click();
+  await page.getByRole('button', { name: /保存图表/ }).click();
+  await expect(page.getByText('图表配置已保存')).toBeVisible();
+  await capture('studio');
+  await page.goto('/assistant');
+  await page.getByLabel('分析问题', { exact: true }).fill('按月份对比销售额');
+  await page.getByRole('button', { name: '生成分析计划' }).click();
+  await page.getByRole('button', { name: '确认并执行' }).click();
+  await expect(page.getByText('分析完成', { exact: true })).toBeVisible({ timeout: 45_000 });
+  await capture('assistant');
+  await page.goto('/reports');
+  await page.getByRole('textbox', { name: '分析摘要' }).fill('样例数据显示，6 月销售额高于 1 月。报告附上月度销售额图表，便于核对各月的实际计算值。');
+  await page.getByLabel('月度销售额', { exact: true }).check();
+  await page.getByRole('button', { name: '保存报告草稿' }).click();
+  await expect(page.getByText('报告草稿已保存')).toBeVisible();
+  await capture('report');
+  await page.goto('/');
+  await expect(page.getByText('从数据，开始新的发现')).toBeVisible();
+  await capture('overview');
+});
