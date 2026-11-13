@@ -9,18 +9,19 @@ import type { Task } from '../types';
 
 const ws=useWorkspace(),tasks=ref<Task[]>([]),health=ref<Record<string,string>>(),error=ref(''),page=ref(1),loading=ref(false);
 const deletingTask=ref<Task|null>(null),deleteBusy=ref(false),notice=ref('');
+const deleteError=ref('');
 const pageSize=10;
 const pageTasks=computed(()=>tasks.value.slice((page.value-1)*pageSize,page.value*pageSize));
 async function load(){loading.value=true;error.value='';try{tasks.value=await api('get',`/tasks?projectId=${ws.projectId}`);health.value=await api('get','/health');page.value=Math.min(page.value,Math.max(1,Math.ceil(tasks.value.length/pageSize)))}catch(e){error.value=messageOf(e)}finally{loading.value=false}}
 async function confirmDelete(){
   if(!deletingTask.value||deleteBusy.value)return;
-  deleteBusy.value=true;error.value='';notice.value='';
+  deleteBusy.value=true;error.value='';notice.value='';deleteError.value='';
   try{
     await api('delete',`/tasks/${deletingTask.value.id}`);
     deletingTask.value=null;
     await load();
     notice.value='任务记录已删除';
-  }catch(e){error.value=messageOf(e)}finally{deleteBusy.value=false}
+  }catch(e){deleteError.value=messageOf(e)}finally{deleteBusy.value=false}
 }
 watch(()=>ws.projectId,()=>{page.value=1;load()});onMounted(load);
 </script>
@@ -48,7 +49,7 @@ watch(()=>ws.projectId,()=>{page.value=1;load()});onMounted(load);
               :disabled="row.status==='running'||deleteBusy"
               :title="row.status==='running'?'任务运行中，完成后可删除':'删除任务记录'"
               :aria-label="row.status==='running'?'任务运行中，完成后可删除':`删除任务记录：${row.name}`"
-              @click="deletingTask=row as Task"
+              @click="deleteError='';deletingTask=row as Task"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M4.5 7h15M9.5 7V5.5c0-.8.7-1.5 1.5-1.5h2c.8 0 1.5.7 1.5 1.5V7m-8.8 0 .8 11.1c.1 1.1.9 1.9 2 1.9h7c1.1 0 1.9-.8 2-1.9L18.3 7M10 10.5v6M14 10.5v6"/>
@@ -59,7 +60,7 @@ watch(()=>ws.projectId,()=>{page.value=1;load()});onMounted(load);
       </ElTable>
       <ElPagination v-if="tasks.length>pageSize" :current-page="page" :page-size="pageSize" :total="tasks.length" layout="prev, pager, next, total" background @current-change="page=$event"/>
     </div>
-    <ActionDialog :open="!!deletingTask" title="删除任务记录" :description="`确定删除「${deletingTask?.name||''}」的任务记录？该任务的计算结果将无法再查看，数据集及已保存的图表、报告会保留。`" confirm-label="确认删除" danger :busy="deleteBusy" @cancel="deletingTask=null" @confirm="confirmDelete"/>
+    <ActionDialog :open="!!deletingTask" title="删除任务记录" :description="`确定删除「${deletingTask?.name||''}」的任务记录？该任务的计算结果将无法再查看，数据集及已保存的图表、报告会保留。`" confirm-label="确认删除" danger :busy="deleteBusy" :error-message="deleteError" @cancel="deletingTask=null" @confirm="confirmDelete"/>
   </div>
 </template>
 

@@ -12,6 +12,7 @@ const props = withDefaults(defineProps<{
   inputLabel?: string;
   danger?: boolean;
   busy?: boolean;
+  errorMessage?: string;
 }>(), { confirmLabel: '确定', initialValue: '', danger: false, busy: false });
 const emit = defineEmits<{ cancel: []; confirm: [value: string] }>();
 const form = reactive({ value: '' });
@@ -39,6 +40,7 @@ async function submit() {
   <ElDialog :model-value="open" class="workbench-dialog" width="min(440px, calc(100vw - 32px))" :show-close="false" :close-on-click-modal="!busy" :close-on-press-escape="!busy" align-center @update:model-value="value => { if (!value) emit('cancel') }">
     <template #header><div class="action-header"><span class="action-symbol" :class="{ danger }">{{ danger ? '!' : '✎' }}</span><h2>{{ title }}</h2></div></template>
     <p class="action-description">{{ description }}</p>
+    <p v-if="errorMessage" class="error" role="alert">{{ errorMessage }}</p>
     <ElForm v-if="inputLabel" ref="formRef" :model="form" :rules="rules" label-position="top" @submit.prevent="submit">
       <ElFormItem :label="inputLabel" prop="value"><ElInput ref="inputRef" v-model="form.value" maxlength="100" show-word-limit @keyup.enter="submit"/></ElFormItem>
     </ElForm>
