@@ -70,6 +70,9 @@ async function logout() {
     logoutError.value = messageOf(e);
   }
 }
+function projectChanged() {
+  if (route.path.startsWith('/datasets/')) void router.replace('/datasets');
+}
 onMounted(refresh);
 </script>
 <template>
@@ -114,7 +117,7 @@ onMounted(refresh);
             <h1>{{ title }}</h1>
           </div>
           <div class="top-actions">
-            <AppSelect v-model="ws.projectId" class="project-select" aria-label="当前项目">
+            <AppSelect v-model="ws.projectId" class="project-select" aria-label="当前项目" @change="projectChanged">
               <option value="">请选择项目</option>
               <option v-for="project in ws.projects" :key="project.id" :value="project.id">
                 {{ project.name }}
@@ -127,7 +130,7 @@ onMounted(refresh);
           <div v-if="refreshError" class="error" role="alert">
             {{ refreshError }} <button class="button ghost" @click="refresh">重试</button>
           </div>
-          <router-view :key="route.fullPath" @project-created="refresh" />
+          <router-view :key="`${ws.projectId}:${route.fullPath}`" @project-created="refresh" />
         </main>
       </div>
     </div>

@@ -52,6 +52,11 @@ export const useWorkspace = defineStore('workspace', () => {
     localStorage.setItem('workbench-owner', userId);
   }
    
+  watch(projectId, () => {
+    datasetId.value = '';
+    datasets.value = [];
+    Object.assign(chartDraft.value, { title: '新图表', dimension: '', metric: '', filterField: '', filterValue: '' });
+  }, { flush: 'sync' });
   watch(projectId, (v) => localStorage.setItem('workbench-project', JSON.stringify(v)));
   watch(datasetId, (v) => localStorage.setItem('workbench-dataset', JSON.stringify(v)));
   watch(chartDraft, (v) => localStorage.setItem('workbench-chart', JSON.stringify(v)), { deep: true });

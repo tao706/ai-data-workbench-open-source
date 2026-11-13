@@ -1,4 +1,4 @@
-"""Small, deterministic data service. Only the Node gateway may call it."""
+
 
 from __future__ import annotations
 
@@ -34,19 +34,19 @@ class PreviewRequest(DatasetRequest):
 
 
 class CleanRule(BaseModel):
-    """清理规则模型"""
+    
     operation: Literal["drop_missing", "fill_mean", "fill_median", "fill_mode", "fill_value", "drop_duplicates", "cast_number", "cast_text", "cast_date", "iqr_drop", "iqr_clip"]
     field: str | None = None 
     value: str | float | int | None = None 
 
 
 class CleanRequest(DatasetRequest):
-    """清理请求模型"""
+    
     rules: list[CleanRule] = Field(min_length=1, max_length=20) 
 
 
 class GroupRequest(DatasetRequest):
-    """分组请求模型"""
+    
     dimension: str 
     metric: str | None = None 
     aggregate: Literal["count", "sum", "mean", "min", "max"] = "count" 
@@ -57,7 +57,7 @@ class GroupRequest(DatasetRequest):
 
 
 class ChartRequest(GroupRequest):
-    """图表请求模型"""
+    
     chart_type: Literal["bar", "line", "area", "pie", "scatter", "table"] = "bar" 
 
 

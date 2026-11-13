@@ -1,0 +1,64 @@
+import { test, expect } from '@playwright/test';
+
+test('切换项目刷新统计与列表，清除旧数据集，并忽略迟到响应', async ({ page }) => {
+  const a = '00000000-0000-4000-8000-000000000001', b = '00000000-0000-4000-8000-000000000002';
+  const dataset = { id: 'dataset-a', projectId: a, name: '甲项目数据', rows: 12, columns: 1, version: 1, fields: [{ name: '数值', type: 'number' }], createdAt: new Date().toISOString() };
+  const task = { id: 'task-a', projectId: a, name: '甲项目任务', type: 'descriptive', status: 'completed', progress: 100, createdAt: new Date().toISOString() };
+  let delayA = false;
+  let releaseA: (() => void) | undefined;
+  await page.route('**/api/**', async route => {
+    const url = new URL(route.request().url());
+    const project = url.searchParams.get('projectId');
+    let data: unknown = null;
+    if (url.pathname === '/api/auth/me') data = { id: 'project-switch-user', name: '测试用户', email: 'switch@example.com' };
+    else if (url.pathname === '/api/projects') data = [{ id: a, name: '甲项目' }, { id: b, name: '乙项目' }];
+    else if (url.pathname === '/api/health') data = { express: 'online', fastapi: 'online', database: 'local-json', model: 'mock' };
+    else if (url.pathname === '/api/dashboard') {
+      if (project === a && delayA) await new Promise<void>(resolve => { releaseA = resolve; });
+      data = project === a ? { datasets: 1, tasks: 2, charts: 3, reports: 4, recentDatasets: [dataset], recentTasks: [task] } : project === b ? { datasets: 0, tasks: 0, charts: 0, reports: 0, recentDatasets: [], recentTasks: [] } : { datasets: 9, tasks: 9, charts: 9, reports: 9 };
+    } else if (url.pathname === '/api/datasets') data = project === a ? [dataset] : [];
+    else if (url.pathname === '/api/datasets/dataset-a') data = dataset;
+    else if (url.pathname === '/api/tasks') data = project === a ? [task] : [];
+    else if (url.pathname === '/api/charts' || url.pathname === '/api/reports') data = [];
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ code: 0, data }) });
+  });
+  const choose = async (name: string) => {
+    await page.getByRole('button', { name: '当前项目', exact: true }).click();
+    await page.getByRole('option', { name, exact: true }).click();
+  };
+  const values = page.locator('.metric-strip button strong');
+  await page.goto('/');
+  await expect(values).toHaveText(['1', '2', '3', '4']);
+  await expect(page.getByRole('button', { name: /甲项目数据/ })).toBeVisible();
+  await choose('乙项目');
+  await expect(values).toHaveText(['0', '0', '0', '0']);
+  await expect(page.getByRole('button', { name: /甲项目数据/ })).toHaveCount(0);
+  delayA = true;
+  const oldResponse = page.waitForResponse(r => new URL(r.url()).pathname === '/api/dashboard' && r.url().includes(a));
+  await choose('甲项目');
+  await expect.poll(() => !!releaseA).toBe(true);
+  await choose('乙项目');
+  await expect(values).toHaveText(['0', '0', '0', '0']);
+  releaseA!();
+  await oldResponse;
+  await expect(values).toHaveText(['0', '0', '0', '0']);
+  delayA = false;
+  await choose('甲项目');
+  await page.goto('/datasets');
+  await expect(page.getByRole('button', { name: '甲项目数据', exact: true })).toBeVisible();
+  await choose('乙项目');
+  await expect(page.getByText('当前项目还没有数据集')).toBeVisible();
+  await page.goto('/tasks');
+  await choose('甲项目');
+  await expect(page.getByText('甲项目任务', { exact: true })).toBeVisible();
+  await choose('乙项目');
+  await expect(page.getByText('甲项目任务', { exact: true })).toHaveCount(0);
+  await choose('甲项目');
+  await page.evaluate(() => localStorage.setItem('workbench-dataset', JSON.stringify('dataset-a')));
+  await page.goto('/assistant');
+  await expect(page.getByText('甲项目数据 · 12 行')).toBeVisible();
+  await page.getByLabel('分析问题', { exact: true }).fill('甲项目的问题');
+  await choose('乙项目');
+  await expect(page.getByText('请先选择一个数据集')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('workbench-dataset') || 'null'))).toBe('');
+});

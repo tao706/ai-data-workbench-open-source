@@ -12,7 +12,7 @@ const deletingTask=ref<Task|null>(null),deleteBusy=ref(false),notice=ref('');
 const deleteError=ref('');
 const pageSize=10;
 const pageTasks=computed(()=>tasks.value.slice((page.value-1)*pageSize,page.value*pageSize));
-async function load(){loading.value=true;error.value='';try{tasks.value=await api('get',`/tasks?projectId=${ws.projectId}`);health.value=await api('get','/health');page.value=Math.min(page.value,Math.max(1,Math.ceil(tasks.value.length/pageSize)))}catch(e){error.value=messageOf(e)}finally{loading.value=false}}
+async function load(){tasks.value=[];if(!ws.projectId){loading.value=false;return}loading.value=true;error.value='';try{tasks.value=await api('get',`/tasks?projectId=${ws.projectId}`);health.value=await api('get','/health');page.value=Math.min(page.value,Math.max(1,Math.ceil(tasks.value.length/pageSize)))}catch(e){error.value=messageOf(e)}finally{loading.value=false}}
 async function confirmDelete(){
   if(!deletingTask.value||deleteBusy.value)return;
   deleteBusy.value=true;error.value='';notice.value='';deleteError.value='';

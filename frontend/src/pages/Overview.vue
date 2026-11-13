@@ -32,10 +32,17 @@ const shortcuts = [
 
  
 async function load() {
+  const projectId = ws.projectId;
   error.value = '';
+  stats.value = null;
+  if (!projectId) {
+    stats.value = { datasets: 0, tasks: 0, charts: 0, reports: 0, recentDatasets: [], recentTasks: [] };
+    return;
+  }
   try {
      
-    const [s, h] = await Promise.all([api('get', '/dashboard'), api('get', '/health')]);
+    const [s, h] = await Promise.all([api('get', `/dashboard?projectId=${encodeURIComponent(projectId)}`), api('get', '/health')]);
+    if (projectId !== ws.projectId) return;
     stats.value = s;  
     health.value = h;  
   } catch (e) {

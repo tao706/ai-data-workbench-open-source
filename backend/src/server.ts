@@ -288,22 +288,26 @@ app.get('/api/auth/me', (req, res) => {
  
 app.get(
   '/api/dashboard',
-  wrap(async (req, res) =>
+  wrap(async (req, res) => {
+    const projectId = z.string().uuid().optional().parse(req.query.projectId);
+    if (projectId) projectFor(projectId, req.user.id);
+    const owned = ownedProjects(req.user.id);
+    const matches = (item: { projectId: string }) => owned.has(item.projectId) && (!projectId || item.projectId === projectId);
     res.json(
       ok(
         {
           projects: db().projects.filter((p) => p.ownerId === req.user.id).length,  
-          datasets: db().datasets.filter((d) => ownedProjects(req.user.id).has(d.projectId)).length,  
-          charts: db().charts.filter((c) => ownedProjects(req.user.id).has(c.projectId)).length,  
-          tasks: db().tasks.filter((t) => ownedProjects(req.user.id).has(t.projectId)).length,  
-          reports: db().reports.filter((r) => ownedProjects(req.user.id).has(r.projectId)).length,  
-          recentDatasets: db().datasets.filter((d) => ownedProjects(req.user.id).has(d.projectId)).slice(-5).reverse(),  
-          recentTasks: db().tasks.filter((t) => ownedProjects(req.user.id).has(t.projectId)).slice(-5).reverse(),  
+          datasets: db().datasets.filter((d) => matches(d)).length,  
+          charts: db().charts.filter((c) => matches(c)).length,  
+          tasks: db().tasks.filter((t) => matches(t)).length,  
+          reports: db().reports.filter((r) => matches(r)).length,  
+          recentDatasets: db().datasets.filter((d) => matches(d)).slice(-5).reverse(),  
+          recentTasks: db().tasks.filter((t) => matches(t)).slice(-5).reverse(),  
         },
         req.traceId,  
       ),
-    ),
-  ),
+    );
+  }),
 );
 
  
