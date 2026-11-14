@@ -10,11 +10,11 @@
 
 ## 实际操作
 
-注册账号、导入销售示例、保存月度销售额图表、确认分析计划，再把图表加入报告。下面录制来自本地应用的实际操作，使用项目自带的 12 行销售数据。AI 部分使用演示解读。
+下面是约 86 秒的本地操作录屏，展示数据集管理、数据清洗、探索分析、图表配置、AI 分析和报告保存。录制使用销售示例数据，AI 解读通过已配置的模型服务生成。
 
 ![销售样例从导入到图表、解读和报告的实际操作](docs/images/workflow-demo.gif)
 
-[查看原始录屏](docs/videos/workflow.webm) · [按步骤体验](docs/DEMO.md) · [部署说明](docs/DEPLOY.md) · [下载 v0.1.0](https://github.com/tao706/ai-data-workbench-open-source/releases/tag/v0.1.0)
+[按步骤体验](docs/DEMO.md) · [部署说明](docs/DEPLOY.md) · [下载 v0.1.0](https://github.com/tao706/ai-data-workbench-open-source/releases/tag/v0.1.0)
 
 ### 可视化工作室
 
