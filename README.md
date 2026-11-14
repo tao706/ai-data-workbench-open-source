@@ -10,15 +10,11 @@
 
 ## 实际操作
 
-下面的约 40 秒预览展示五步流程：导入数据集 → 数据清洗 → 可视化工作室 → AI 分析助手 → 生成报告。包含点击示例问题、生成并确认计划和查看解读的过程；顶部步骤提示用于衔接节选，保留片段按原速播放。
+从导入数据、清洗和绘图，到 AI 解读与报告保存，下面节选了实际操作中的关键环节。预览保留原操作速度，完整演示可查看各模块的操作细节。
 
-[![导入、清洗、可视化、AI 分析与报告的五步流程预览](docs/images/workflow-demo.gif)](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-preview.mp4)
+[![数据分析工作台核心操作预览](docs/images/workflow-demo.gif)](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-preview.mp4)
 
-**[观看五步流程（40 秒，MP4，约 1.3 MB）](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-preview.mp4)** · [下载五步流程视频](https://raw.githubusercontent.com/tao706/ai-data-workbench-open-source/main/docs/videos/workflow-preview.mp4)
-
-**[查看完整演示（86 秒，原速 MP4，约 1.8 MB）](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-full.mp4)** · [直接下载视频](https://raw.githubusercontent.com/tao706/ai-data-workbench-open-source/main/docs/videos/workflow-full.mp4)
-
-完整演示包含数据集管理、数据清洗、探索分析、图表配置、AI 分析和报告保存，使用虚构销售数据及已配置的模型服务。点击预览图可打开完整视频；若浏览器未提供播放入口，可下载后观看。
+[观看核心操作预览（约 40 秒）](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-preview.mp4) · [观看完整操作演示（约 86 秒）](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-full.mp4)
 
 [按步骤体验](docs/DEMO.md) · [部署说明](docs/DEPLOY.md) · [下载 v0.1.0](https://github.com/tao706/ai-data-workbench-open-source/releases/tag/v0.1.0)
 
