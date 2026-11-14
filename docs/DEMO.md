@@ -10,4 +10,4 @@
 6. 到报告中心填写摘要，勾选已保存图表，保存草稿；可通过浏览器打印为 PDF。
 7. 刷新页面，确认图表和报告仍存在；到任务监控查看执行记录。
 
-首页 GIF 和截图使用以上流程生成。原始录屏位于 `docs/videos/workflow.webm`；自动化脚本是 `e2e/showcase.spec.ts`。本地录制使用独立端口和示例账号，不包含个人数据。
+以上步骤用于复现项目自带的 12 行示例流程；自动化脚本是 `e2e/showcase.spec.ts`，早期录屏保留在 `docs/videos/workflow.webm`。README 当前展示较新的手动录屏，使用 examples/ 中的销售数据：完整视频为 `docs/videos/workflow-full.mp4`（85.9 秒），首页 GIF 为其中 20 秒的原速节选。

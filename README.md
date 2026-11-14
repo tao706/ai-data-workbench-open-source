@@ -10,9 +10,13 @@
 
 ## 实际操作
 
-下面是约 86 秒的本地操作录屏，展示数据集管理、数据清洗、探索分析、图表配置、AI 分析和报告保存。录制使用销售示例数据，AI 解读通过已配置的模型服务生成。
+下面的 20 秒预览节选自实际操作，展示图表配置、AI 解读和报告。片段保持原速，仅降低预览分辨率和帧数以缩小体积。
 
-![销售样例从导入到图表、解读和报告的实际操作](docs/images/workflow-demo.gif)
+[![图表配置、AI 解读和报告预览](docs/images/workflow-demo.gif)](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-full.mp4)
+
+**[查看完整演示（86 秒，原速 MP4，约 1.8 MB）](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-full.mp4)** · [直接下载视频](https://raw.githubusercontent.com/tao706/ai-data-workbench-open-source/main/docs/videos/workflow-full.mp4)
+
+完整演示包含数据集管理、数据清洗、探索分析、图表配置、AI 分析和报告保存，使用虚构销售数据及已配置的模型服务。点击预览图可打开完整视频；若浏览器未提供播放入口，可下载后观看。
 
 [按步骤体验](docs/DEMO.md) · [部署说明](docs/DEPLOY.md) · [下载 v0.1.0](https://github.com/tao706/ai-data-workbench-open-source/releases/tag/v0.1.0)
 
