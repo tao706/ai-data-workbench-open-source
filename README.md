@@ -10,9 +10,9 @@
 
 ## 实际操作
 
-下面的 20 秒预览节选自实际操作，展示图表配置、AI 解读和报告。片段保持原速，仅降低预览分辨率和帧数以缩小体积。
+下面的约 27 秒预览展示一条分析流程：查看数据集 → 点击示例问题 → 生成并确认分析计划 → 查看模型解读与计算结果 → 将已保存图表加入报告并保存。顶部步骤提示用于衔接节选，保留片段按原速播放。
 
-[![图表配置、AI 解读和报告预览](docs/images/workflow-demo.gif)](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-full.mp4)
+[![从提问、确认计划到生成报告的操作预览](docs/images/workflow-demo.gif)](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-full.mp4)
 
 **[查看完整演示（86 秒，原速 MP4，约 1.8 MB）](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-full.mp4)** · [直接下载视频](https://raw.githubusercontent.com/tao706/ai-data-workbench-open-source/main/docs/videos/workflow-full.mp4)
 
