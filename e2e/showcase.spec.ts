@@ -1,14 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 
-test.use({ viewport: { width: 1600, height: 1000 }, video: 'on' });
+test.use({ viewport: { width: 1600, height: 1280 }, video: 'on' });
 
 test('销售样例的实际操作与截图', async ({ page }) => {
   test.setTimeout(120_000);
   await mkdir('docs/images', { recursive: true });
   const capture = async (name: string) => {
     await page.evaluate(() => document.fonts.ready);
-    await page.screenshot({ path: `docs/images/${name}.png`, fullPage: true, animations: 'disabled' });
+    await page.screenshot({ path: `docs/images/${name}.png`, fullPage: false, animations: 'disabled' });
   };
   await page.goto('/login');
   await page.getByRole('button', { name: '注册账号' }).click();
