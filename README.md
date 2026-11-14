@@ -10,9 +10,11 @@
 
 ## 实际操作
 
-下面的约 27 秒预览展示一条分析流程：查看数据集 → 点击示例问题 → 生成并确认分析计划 → 查看模型解读与计算结果 → 将已保存图表加入报告并保存。顶部步骤提示用于衔接节选，保留片段按原速播放。
+下面的约 40 秒预览展示五步流程：导入数据集 → 数据清洗 → 可视化工作室 → AI 分析助手 → 生成报告。包含点击示例问题、生成并确认计划和查看解读的过程；顶部步骤提示用于衔接节选，保留片段按原速播放。
 
-[![从提问、确认计划到生成报告的操作预览](docs/images/workflow-demo.gif)](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-full.mp4)
+[![导入、清洗、可视化、AI 分析与报告的五步流程预览](docs/images/workflow-demo.gif)](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-preview.mp4)
+
+**[观看五步流程（40 秒，MP4，约 1.3 MB）](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-preview.mp4)** · [下载五步流程视频](https://raw.githubusercontent.com/tao706/ai-data-workbench-open-source/main/docs/videos/workflow-preview.mp4)
 
 **[查看完整演示（86 秒，原速 MP4，约 1.8 MB）](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-full.mp4)** · [直接下载视频](https://raw.githubusercontent.com/tao706/ai-data-workbench-open-source/main/docs/videos/workflow-full.mp4)
 
