@@ -10,11 +10,11 @@
 
 ## 实际操作
 
-从导入数据、清洗和绘图，到 AI 解读与报告保存，下面节选了实际操作中的关键环节。预览保留原操作速度，完整演示可查看各模块的操作细节。
+下面是核心操作预览，节选了数据导入、清洗、可视化、AI 解读与报告生成的关键环节。预览保留原操作速度，完整演示可查看各模块的操作细节。
 
-[![数据分析工作台核心操作预览](docs/images/workflow-demo.gif)](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-preview.mp4)
+![数据分析工作台核心操作预览](docs/images/workflow-demo.gif)
 
-[观看核心操作预览（约 40 秒）](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-preview.mp4) · [观看完整操作演示（约 86 秒）](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-full.mp4)
+[观看完整操作演示（约 86 秒）](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-full.mp4)
 
 [按步骤体验](docs/DEMO.md) · [部署说明](docs/DEPLOY.md) · [下载 v0.1.0](https://github.com/tao706/ai-data-workbench-open-source/releases/tag/v0.1.0)
 
