@@ -25,6 +25,8 @@ async function save(){
 }
 function open(r:Report){chartResults.value={};form.title=r.name;const saved=r.sections.find(s=>s.type==='text')?.content||'';form.content=saved==='请填写报告摘要、主要发现和行动建议。'?'':saved;selected.value=r.sections.filter(s=>s.chartId).map(s=>s.chartId!);formRef.value?.clearValidate()}
 watch(()=>ws.projectId,load);onMounted(load);watch(selected,loadChartResults,{deep:true});watch(charts,loadChartResults);
+
+defineExpose({ refresh: async () => { error.value = ''; await load(); if (error.value) throw new Error(error.value); } });
 </script>
 
 <template>

@@ -24,6 +24,8 @@ async function run(){
 function stop(){controller?.abort();stage.value='已停止生成';busy.value=false}
 async function copy(){try{await navigator.clipboard.writeText(answer.value)}catch{error.value='复制失败，请手动选择内容复制'}}
 onMounted(load);onBeforeUnmount(stop);
+
+defineExpose({ refresh: async () => { error.value = ''; await load(); if (error.value) throw new Error(error.value); } });
 </script>
 
 <template>

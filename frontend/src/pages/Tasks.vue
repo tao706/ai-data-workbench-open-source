@@ -24,6 +24,8 @@ async function confirmDelete(){
   }catch(e){deleteError.value=messageOf(e)}finally{deleteBusy.value=false}
 }
 watch(()=>ws.projectId,()=>{page.value=1;load()});onMounted(load);
+
+defineExpose({ refresh: async () => { error.value = ''; await load(); if (error.value) throw new Error(error.value); } });
 </script>
 
 <template>

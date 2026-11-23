@@ -86,6 +86,8 @@ const date = (value?: string) =>
     : '—';
  
 onMounted(load);
+
+defineExpose({ refresh: async () => { error.value = ''; await load(); if (error.value) throw new Error(error.value); } });
 </script>
 
 <template>

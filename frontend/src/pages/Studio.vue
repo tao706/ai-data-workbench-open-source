@@ -146,6 +146,8 @@ watch(() => ws.datasetId, (id) => {
   load();
 });
 onMounted(load);
+
+defineExpose({ refresh: async () => { error.value = ''; saved.value = ws.projectId ? await api('get', `/charts?projectId=${ws.projectId}`) : []; await load(); if (error.value) throw new Error(error.value); } });
 </script>
 
 <template>

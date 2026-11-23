@@ -91,6 +91,8 @@ function selectTab(next: string) {
  
  
 watch(() => ws.datasetId, load, { immediate: true });
+
+defineExpose({ refresh: async () => { error.value = ''; await load(); if (error.value) throw new Error(error.value); } });
 </script>
 
 <template>

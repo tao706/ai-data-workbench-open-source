@@ -198,6 +198,8 @@ watch(
 );
 
 watch(() => ws.projectId, loadProjectDatasets, { immediate: true });
+
+defineExpose({ refresh: async () => { error.value = ''; await loadProjectDatasets(); await load(); if (error.value) throw new Error(error.value); } });
 </script>
 
 <template>

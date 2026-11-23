@@ -174,6 +174,8 @@ function openDataset(d: Dataset) {
   router.push(`/datasets/${d.id}`);
 }
 onMounted(load);  
+
+defineExpose({ refresh: async () => { error.value = ''; await load(); if (error.value) throw new Error(error.value); } });
 </script>
 
 <template>
