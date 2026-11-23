@@ -34,6 +34,10 @@ function chooseFile(event: Event) {
   file.value = (event.target as HTMLInputElement).files?.[0];
   if (file.value && !name.value) name.value = file.value.name.slice(0, 100);
 }
+function clearFile() {
+  file.value = undefined;
+  if (fileInput.value) fileInput.value.value = '';
+}
 async function upload() {
   if (uploading.value || !ws.projectId) return;
   error.value = ''; notice.value = '';
@@ -75,7 +79,7 @@ onBeforeUnmount(() => { disposed = true; sequence++; clearTimeout(timer); });
 defineExpose({ refresh: async () => { await load(); if (error.value) throw new Error(error.value); } });
 </script>
 <template>
-  <div class="stack">
+  <div class="stack knowledge-page">
     <div class="page-heading"><div><h2>业务资料</h2><p>为当前项目补充指标口径、业务规则和分析背景，让解读有据可查。</p></div><span class="badge">{{ modeLabel(mode) }} · {{ ready }} 份可用</span></div>
     <div v-if="!ws.projectId" class="card empty">请先选择或创建一个项目</div>
     <template v-else>
@@ -85,14 +89,23 @@ defineExpose({ refresh: async () => { await load(); if (error.value) throw new E
         <form class="card card-pad stack" @submit.prevent="upload">
           <div><h3 class="card-title">添加业务资料</h3><p class="muted small">上传 TXT、Markdown，或直接粘贴正文。资料只在当前项目内检索。</p></div>
           <label class="field">资料名称<input v-model="name" maxlength="100" :disabled="uploading" placeholder="例如：销售指标口径与区域目标" /></label>
-          <label class="field">上传文件<input ref="fileInput" type="file" accept=".txt,.md" :disabled="uploading" @change="chooseFile" /></label>
+          <div class="field"><span>上传文件</span>
+            <div class="file-picker" :class="{ 'has-file': file, 'is-disabled': uploading }">
+              <input ref="fileInput" class="file-input" type="file" accept=".txt,.md" aria-label="上传文件" :disabled="uploading" @change="chooseFile" />
+              <button class="button file-choose" type="button" :disabled="uploading" @click="fileInput?.click()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m-4 4 4-4 4 4M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>{{ file ? '更换文件' : '选择文件' }}
+              </button>
+              <div class="file-description"><span :title="file?.name">{{ file?.name || '未选择文件' }}</span><small>{{ file ? `${(file.size / 1024).toFixed(1)} KB · 已选择，等待上传` : 'TXT / Markdown · 不超过 1 MB' }}</small></div>
+              <button v-if="file" class="file-clear" type="button" aria-label="清除所选文件" title="清除所选文件" :disabled="uploading" @click="clearFile"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+            </div>
+          </div>
           <p v-if="file" class="muted small">将导入文件内容；清除所选文件后可使用下方正文。</p>
           <label class="field">资料正文<textarea v-model="content" :disabled="uploading || !!file" maxlength="50000" rows="9" placeholder="例如：净销售额为销售额扣除退款后的金额。区域目标按自然月统计……" /></label>
           <p class="muted small">单文件不超过 1 MB，正文最多 50000 字符，每个项目最多 40 份。</p>
-          <button class="button primary" type="submit" :disabled="uploading">{{ uploading ? '正在上传与解析…' : '添加并建立索引' }}</button>
+          <button class="button primary knowledge-submit" type="submit" :disabled="uploading">{{ uploading ? '正在上传与解析…' : '添加并建立索引' }}</button>
         </form>
         <section class="card card-pad stack" aria-label="当前项目资料">
-          <div class="page-heading"><h3 class="card-title" style="margin:0">当前项目资料</h3><router-link class="text-link" to="/assistant">去分析 ↗</router-link></div>
+          <div class="page-heading"><h3 class="card-title" style="margin:0">当前项目资料</h3><router-link class="button knowledge-analysis" to="/assistant">去分析 ↗</router-link></div>
           <p class="muted small">{{ mode === 'vector' ? '按语义相似度寻找相关片段。更换检索服务后，请重新建立索引。' : '当前使用关键词检索，根据问题中的关键字寻找资料。' }}</p>
           <p v-if="loading" class="muted" role="status">正在加载资料…</p>
           <div v-else-if="!documents.length" class="empty">还没有业务资料，可先添加指标说明或业务规则。</div>
@@ -100,7 +113,7 @@ defineExpose({ refresh: async () => { await load(); if (error.value) throw new E
             <div class="document-heading"><strong>{{ doc.name }}</strong><span class="badge" :class="doc.status">{{ doc.status === 'ready' ? '可引用' : doc.status === 'failed' ? '索引失败' : '正在索引…' }}</span></div>
             <p class="muted small">{{ doc.characters.toLocaleString('zh-CN') }} 字符 · {{ doc.chunkCount }} 个片段 · {{ modeLabel(doc.mode) }}</p>
             <p v-if="doc.error" class="error" role="alert">{{ doc.error }}</p>
-            <div class="document-actions"><button class="button ghost" @click="view(doc)">查看原文</button><button class="button ghost" :disabled="doc.status === 'indexing' || !!workingId" @click="reindex(doc)">{{ workingId === doc.id ? '提交中…' : doc.status === 'failed' ? '重试索引' : '重新索引' }}</button><button class="button ghost" :aria-label="`删除资料 ${doc.name}`" @click="deleting = doc; deleteError = ''"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button></div>
+            <div class="document-actions"><button class="button document-view" @click="view(doc)">查看原文</button><button class="button document-reindex" :disabled="doc.status === 'indexing' || !!workingId" @click="reindex(doc)">{{ workingId === doc.id ? '提交中…' : doc.status === 'failed' ? '重试索引' : '重新索引' }}</button><button class="button document-delete" :aria-label="`删除资料 ${doc.name}`" @click="deleting = doc; deleteError = ''"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button></div>
           </article>
         </section>
       </div>
@@ -111,4 +124,23 @@ defineExpose({ refresh: async () => { await load(); if (error.value) throw new E
 </template>
 <style scoped>
 .knowledge-layout{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:24px;align-items:start}.knowledge-item{padding:18px 0;border-top:1px solid #e5eaf2}.document-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.document-heading strong{overflow-wrap:anywhere}.document-actions{display:flex;gap:8px;flex-wrap:wrap}.document-original{white-space:pre-wrap;overflow-wrap:anywhere;max-height:65vh;overflow:auto;padding:18px;line-height:1.9;background:#f7f9fc;color:#34465e;border-radius:12px;font:inherit}.badge.failed{color:#a34a68;background:#fbecef}.badge.indexing{color:#9b7739;background:#f8f2e5}.badge.ready{color:#4f7b6b;background:#eef6f1}.notice{padding:14px 18px;background:#edf5f1;color:#436d5d;border:1px solid #dcece3;border-radius:12px}.knowledge-layout textarea{min-height:180px}@media(max-width:960px){.knowledge-layout{grid-template-columns:1fr}}
+
+.knowledge-page .button{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;transition:background .2s,border-color .2s,box-shadow .2s,transform .2s}
+.file-picker{position:relative;display:flex;align-items:center;gap:14px;min-height:82px;padding:15px;border:1px solid #dce5f0;border-radius:13px;background:linear-gradient(115deg,#f1f5fc,#fcf6f9);transition:border-color .2s,box-shadow .2s}
+.file-picker:focus-within{border-color:#8ca7ce;box-shadow:0 0 0 3px #bfd7ea4d}
+.file-picker.has-file{background:linear-gradient(115deg,#edf4fc,#fcf5f8);border-color:#b9cce5}
+.file-picker .file-input{position:absolute;width:1px;height:1px;min-height:0;padding:0;border:0;clip-path:inset(50%);overflow:hidden;white-space:nowrap}
+.knowledge-page .file-choose{flex-shrink:0;min-height:40px;padding:0 15px;border:1px solid #5b79ad;border-radius:10px;background:linear-gradient(125deg,#7899ca,#526fa6);color:#fff;box-shadow:0 3px 9px #45639822,inset 0 1px 0 #ffffff30}
+.knowledge-page .file-choose:hover:not(:disabled){background:linear-gradient(125deg,#6b8bbb,#456398);box-shadow:0 5px 12px #45639830;transform:translateY(-1px)}
+.file-description{min-width:0;flex:1;color:#4a6287}.file-description>span{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:13px;font-weight:600}.file-description small{display:block;margin-top:6px;color:#8190a8;font-size:11px;font-weight:400}
+.file-clear{display:grid;place-items:center;flex-shrink:0;width:28px;height:28px;padding:0;border:1px solid transparent;border-radius:8px;color:#a16c83;background:transparent;cursor:pointer}.file-clear:hover:not(:disabled){background:#f7e5ed;border-color:#ebccd9;color:#984b69}.file-clear:focus-visible{outline:2px solid #8ca7ce;outline-offset:2px}
+.knowledge-page .document-view{color:#456398;border:1px solid #ccdaed;background:#edf3fb}.knowledge-page .document-view:hover:not(:disabled){background:#e1ebf8;border-color:#9fb8db;box-shadow:0 3px 9px #45639814}
+.knowledge-page .document-reindex{color:#99617c;border:1px solid #ecd4df;background:#fbf0f5}.knowledge-page .document-reindex:hover:not(:disabled){background:#f5e2eb;border-color:#dcb3c7;box-shadow:0 3px 9px #a35b7914}
+.knowledge-page .document-delete{min-width:36px;color:#a16b82;border:1px solid #eddae2;background:#fff7fa}.knowledge-page .document-delete:hover:not(:disabled){color:#a04869;border-color:#dcaec1;background:#f9e3eb;box-shadow:0 3px 9px #a35b7914}
+.knowledge-page .knowledge-analysis{font-size:12px;color:#4d6d9f;border:1px solid #d7e2f1;background:linear-gradient(120deg,#edf3fb,#f9f0f5);padding:8px 13px}.knowledge-page .knowledge-analysis:hover{border-color:#a8bfdc;background:#e8f0fb;box-shadow:0 3px 9px #45639815}
+.knowledge-page .knowledge-submit{min-height:42px;border-color:#5875a7;background:linear-gradient(120deg,#7898c7,#526da3);box-shadow:0 4px 12px #45639825,inset 0 1px 0 #ffffff25}.knowledge-page .knowledge-submit:hover:not(:disabled){background:linear-gradient(120deg,#6686b8,#456398);box-shadow:0 6px 15px #45639830;transform:translateY(-1px)}
+.knowledge-page button:disabled{cursor:not-allowed;transform:none;box-shadow:none}.file-picker.is-disabled{opacity:.65}
+@media(max-width:540px){.file-picker{flex-wrap:wrap;gap:10px}.file-description{flex-basis:calc(100% - 50px);order:2}.file-clear{margin-left:auto}.file-description small{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.knowledge-page .button{transition:none}.knowledge-page .button:hover{transform:none}}
+
 </style>
