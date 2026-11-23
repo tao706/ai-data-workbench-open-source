@@ -144,7 +144,7 @@ onMounted(refresh);
               </option></AppSelect>
             <span v-if="refreshNotice" class="refresh-notice" role="status">{{ refreshNotice }}</span>
             <button class="icon-button workspace-refresh" :title="loading ? '正在刷新' : '刷新当前页面'" :aria-label="loading ? '正在刷新' : '刷新当前页面'" :aria-busy="loading" :disabled="loading" @click="refresh(true)">
-              <svg :class="{ spinning: loading }" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M19.1 12a7.5 7.5 0 1 1-2-5.2L20 10"/></svg>
+              <svg :class="{ spinning: loading }" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15.36-5.36L21 8M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.36 5.36L3 16M8 16H3v5"/></svg>
             </button>
             <span class="top-avatar">D</span>
           </div>
@@ -163,8 +163,8 @@ onMounted(refresh);
 </template>
 
 <style scoped>
-.workspace-refresh { display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; transition: background .2s, box-shadow .2s; }
-.workspace-refresh:hover:not(:disabled) { background: #edf1f9; box-shadow: 0 3px 12px #5672a522; }
+.workspace-refresh { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; color: #58709e; background: #ffffffa6; border: 1px solid #dce3ee; border-radius: 11px; transition: background .2s, border-color .2s, box-shadow .2s; }
+.workspace-refresh:hover:not(:disabled) { background: #f0f3fa; border-color: #bbcbe2; box-shadow: 0 3px 10px #5672a518; }
 .workspace-refresh:disabled { cursor: wait; opacity: .65; }
 .spinning { animation: workspace-spin .8s linear infinite; }
 .refresh-notice { color: #456398; font-size: 13px; }
