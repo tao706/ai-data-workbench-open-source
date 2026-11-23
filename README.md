@@ -10,34 +10,42 @@
 
 ## 实际操作
 
-下面是核心操作预览，节选了数据导入、清洗、可视化、AI 解读与报告生成的关键环节。预览保留原操作速度，完整演示可查看各模块的操作细节。
+下面是核心操作预览，节选数据导入、清洗、可视化、AI 解读与报告保存的关键环节。当前预览保留原操作速度；新增业务资料与原文引用流程见下方完整演示和截图。
 
 ![数据分析工作台核心操作预览](docs/images/workflow-demo.gif)
 
-[观看完整操作演示（约 86 秒）](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-full.mp4)
+[观看完整操作演示（约 147 秒，含业务资料与引用）](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-full.mp4)
 
-[按步骤体验](docs/DEMO.md) · [部署说明](docs/DEPLOY.md) · [下载 v0.1.0](https://github.com/tao706/ai-data-workbench-open-source/releases/tag/v0.1.0)
+[按步骤体验](docs/DEMO.md) · [部署说明](docs/DEPLOY.md) · [下载最新源码](https://github.com/tao706/ai-data-workbench-open-source/archive/refs/heads/main.zip)
 
 ### 可视化工作室
 
-按月份汇总销售额，设置图表标题、配色并保存配置。
+以清洗后的 V2 数据按区域汇总销售额，切换图表类型并保存字段与样式配置。
 
-![月度销售额图表与字段配置](docs/images/studio.png)
+![区域销售额图表与字段配置](docs/images/studio.png)
+
+### 计算结果与资料引用
+
+确认区域和销售额的计算计划后执行分析；回答展示程序计算的数值，并通过来源编号打开业务资料原文。本次演示使用模型解读和关键词检索，未启用向量模型。
+
+![模型解读、计算口径与业务资料来源](docs/images/assistant.png)
 
 <details>
-<summary>更多界面：总览、数据集、AI 分析与报告</summary>
+<summary>更多界面：总览、数据集、业务资料、引用原文与报告</summary>
 
 ![项目总览与近期操作](docs/images/overview.png)
 
 ![数据集导入与管理](docs/images/datasets.png)
 
-![分析计划、演示解读与计算结果](docs/images/assistant.png)
+![同高双栏的业务资料上传与管理](docs/images/knowledge.png)
 
-![文字和已保存图表组成的报告](docs/images/report.png)
+![来源编号打开原文并高亮相关文字](docs/images/citation.png)
+
+![分析摘要和已保存图表组成的报告](docs/images/report.png)
 
 </details>
 
-以下截图展示各页面的全部内容；实际使用时可在页面内滚动查看。
+截图展示各页面当前视口中的内容；实际使用时可在页面内滚动查看。演示数据、账号和业务规则均为虚构示例，不代表业务收益或性能测试结果。
 
 ## 功能
 
@@ -61,7 +69,7 @@
 
 | 数据 | 内容 | 推荐体验 |
 | --- | --- | --- |
-| [销售经营](examples/01_销售经营数据.xlsx) | 72 行，销售额合计 1,435,680 元 | 按区域汇总、月度趋势、订单数与销售额散点图 |
+| [销售经营](examples/01_销售经营数据.xlsx) | 72 行，销售额合计 1,435,680 | 按区域汇总、月度趋势、订单数与销售额散点图 |
 | [网站运营](examples/02_网站运营数据.xlsx) | 90 行，包含渠道、访问与转化指标 | 渠道对比、日期趋势、筛选和相关性分析 |
 | [设备监测](examples/03_设备监测_清洗练习.xlsx) | 50 行，含重复行、缺失值和异常值 | 去重、填充缺失值、异常值处理及版本对比 |
 
@@ -71,7 +79,7 @@
 
 导入指标口径、业务规则等 TXT / Markdown 资料，在 AI 分析助手中开启引用。先查看检索片段、确认计算计划，再执行分析；回答中的来源编号可打开原文，区分计算结果和资料规定。未配置 Embeddings 时使用关键词检索，配置后可启用向量检索。删除资料时同步清理索引，已有分析保留引用快照。
 
-体验材料：[销售指标说明](examples/knowledge/销售指标说明.md)。配置、数据边界和验证范围见 [业务资料说明](docs/RAG.md)。已有操作录屏录制于该功能加入之前，尚未展示业务资料流程。
+体验材料：[三类业务资料与演示问题](examples/knowledge/使用说明与演示问题.md)，分别对应销售经营、网站运营和设备监测数据。配置、数据边界和验证范围见 [业务资料说明](docs/RAG.md)。完整演示已包含资料上传、计划引用、模型解读和原文查看。
 
 ## 架构
 
@@ -81,6 +89,8 @@ flowchart LR
   API --> Store[(本地 JSON 或 MySQL JSON 快照)]
   API --> Files[上传文件与数据版本]
   API -->|内部 HTTP| Analysis[FastAPI / Pandas]
+  API --> Retrieval[按项目检索资料与引用快照]
+  Retrieval -->|可选 Embeddings| Vectors[向量模型与索引]
   API -->|可选| Model[LangChain.js / 外部模型]
   API -->|SSE 解读| Browser
 ```

@@ -217,7 +217,17 @@ async function persist(snapshot: string) {
      
     const temp = `${file}.tmp`; 
     await fs.writeFile(temp, snapshot);
-    await fs.rename(temp, file);  
+    for (let attempt = 0; ; attempt++) {
+      try { await fs.rename(temp, file); break; }
+      catch (cause) {
+        const code = (cause as NodeJS.ErrnoException).code;
+        if (attempt < 5 && ['EPERM', 'EBUSY', 'EACCES'].includes(code || '')) {
+          await new Promise(resolve => setTimeout(resolve, 20 * 2 ** attempt));
+          continue;
+        }
+        throw new Error('状态保存失败，请稍后重试；若持续失败，请检查存储目录权限。', { cause });
+      }
+    }  
   }
 }
 
