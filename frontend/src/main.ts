@@ -36,6 +36,7 @@ const routes = [
    
   { path: '/studio', component: () => import('./pages/Studio.vue') },
    
+  { path: '/knowledge', component: () => import('./pages/Knowledge.vue') },
   { path: '/assistant', component: () => import('./pages/Assistant.vue') },
    
   { path: '/reports', component: () => import('./pages/Reports.vue') },

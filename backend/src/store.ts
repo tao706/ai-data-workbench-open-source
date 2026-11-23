@@ -111,9 +111,27 @@ export interface Message {
   createdAt: string;
   result?: unknown;
   durationMs?: number;
+  references?: unknown;
 }
  
+export interface KnowledgeChunk { id: string; index: number; text: string; vector?: number[] }
+export interface KnowledgeDocument {
+  id: string;
+  projectId: string;
+  name: string;
+  content: string;
+  status: 'indexing' | 'ready' | 'failed';
+  mode: 'vector' | 'keyword';
+  chunks: KnowledgeChunk[];
+  revision: number;
+  signature?: string;
+  error?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface State {
+  knowledge: KnowledgeDocument[];
   users: User[];
   projects: Project[];
   datasets: Dataset[];
@@ -133,6 +151,7 @@ const root = fileURLToPath(new URL('../../', import.meta.url));
 const file = process.env.WORKBENCH_STATE_FILE || path.join(root, 'backend/data/state.json');
  
 const empty = (): State => ({
+  knowledge: [],
   users: [],
   projects: [],
   datasets: [],
@@ -169,6 +188,10 @@ export async function initStore() {
   }
    
   state.users ??= [];
+  state.knowledge ??= [];
+  for (const doc of state.knowledge) {
+    if (doc.status === 'indexing') { doc.status = 'failed'; doc.error = '服务重启导致索引中断，请重试'; }
+  }
 }
 
  
@@ -182,24 +205,26 @@ export function storageMode() {
 }
 
  
-async function persist() {
+async function persist(snapshot: string) {
   if (pool) {
      
     await pool.query('INSERT INTO app_state(id,data) VALUES(1,?) ON DUPLICATE KEY UPDATE data=VALUES(data)', [
-      JSON.stringify(state),
+      snapshot,
     ]);
   } else {
      
     await fs.mkdir(path.dirname(file), { recursive: true });  
      
     const temp = `${file}.tmp`; 
-    await fs.writeFile(temp, JSON.stringify(state, null, 2));
+    await fs.writeFile(temp, snapshot);
     await fs.rename(temp, file);  
   }
 }
 
 let pendingSave: Promise<void> = Promise.resolve();
 export function save() {
-  pendingSave = pendingSave.then(persist, persist);
-  return pendingSave;
+  const snapshot = JSON.stringify(state);
+  const operation = pendingSave.catch(() => {}).then(() => persist(snapshot));
+  pendingSave = operation;
+  return operation;
 }

@@ -12,6 +12,7 @@ test('切换项目刷新统计与列表，清除旧数据集，并忽略迟到�
     let data: unknown = null;
     if (url.pathname === '/api/auth/me') data = { id: 'project-switch-user', name: '测试用户', email: 'switch@example.com' };
     else if (url.pathname === '/api/projects') data = [{ id: a, name: '甲项目' }, { id: b, name: '乙项目' }];
+    else if (url.pathname === '/api/knowledge') data = { mode: 'keyword', documents: [] };
     else if (url.pathname === '/api/health') data = { express: 'online', fastapi: 'online', database: 'local-json', model: 'mock' };
     else if (url.pathname === '/api/dashboard') {
       if (project === a && delayA) await new Promise<void>(resolve => { releaseA = resolve; });
@@ -59,6 +60,6 @@ test('切换项目刷新统计与列表，清除旧数据集，并忽略迟到�
   await expect(page.getByText('甲项目数据 · 12 行')).toBeVisible();
   await page.getByLabel('分析问题', { exact: true }).fill('甲项目的问题');
   await choose('乙项目');
-  await expect(page.getByText('请先选择一个数据集')).toBeVisible();
+  await expect(page.getByText('请选择当前项目的数据集后开始分析。')).toBeVisible();
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('workbench-dataset') || 'null'))).toBe('');
 });

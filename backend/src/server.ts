@@ -1,3 +1,5 @@
+import { cancelIndex, indexDocument, publicDocument, retrieve, retrievalMode, splitDocument } from './knowledge.service.js';
+import type { KnowledgeDocument } from './store.js';
 import dotenv from 'dotenv';  
 import express from 'express';
 import cors from 'cors';  
@@ -362,6 +364,7 @@ app.delete(
     projectFor(req.params.id, req.user.id);  
      
     if (db().datasets.some((d) => d.projectId === req.params.id)) throw error('请先删除项目下的数据集');
+    if (db().knowledge.some(doc => doc.projectId === req.params.id)) throw error('请先删除项目下的业务资料');
     db().projects = db().projects.filter((p) => p.id !== req.params.id);
     await save();  
     res.json(ok(true, req.traceId));
@@ -924,6 +927,69 @@ app.get(
   }),
 );
 
+const knowledgeUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 1024 * 1024, files: 1, fields: 3 } });
+app.get('/api/knowledge', wrap(async (req, res) => {
+  const projectId = z.string().uuid().parse(req.query.projectId);
+  projectFor(projectId, req.user.id);
+  res.json(ok({ mode: retrievalMode(), documents: db().knowledge.filter(doc => doc.projectId === projectId).map(publicDocument) }, req.traceId));
+}));
+app.post('/api/knowledge', knowledgeUpload.single('file'), wrap(async (req, res) => {
+  const input = z.object({ projectId: z.string().uuid(), name: z.string().trim().min(1).max(100).optional(), content: z.string().optional() }).parse(req.body);
+  projectFor(input.projectId, req.user.id);
+  if (db().knowledge.filter(doc => doc.projectId === input.projectId).length >= 40) throw error('每个项目最多保存 40 份业务资料');
+  let content = input.content || '';
+  let name = input.name || '';
+  if (req.file) {
+    if (!['.md', '.txt'].includes(path.extname(req.file.originalname).toLowerCase())) throw error('仅支持 UTF-8 编码的 TXT、Markdown 文件');
+    try { content = new TextDecoder('utf-8', { fatal: true }).decode(req.file.buffer); } catch { throw error('文件不是有效的 UTF-8 文本，请转换编码后重试'); }
+    let filename = req.file.originalname;
+    if (!/[^\u0000-\u00ff]/.test(filename)) {
+      try { filename = new TextDecoder('utf-8', { fatal: true }).decode(Buffer.from(filename, 'latin1')); } catch {}
+    }
+    name ||= filename.slice(0, 100);
+  }
+  if (!name) throw error('请填写资料名称');
+  content = content.replace(/^\uFEFF/, '').trim();
+  if (!content || content.length > 50000) throw error('资料正文需为 1 至 50000 个字符');
+  splitDocument(content);
+  const doc: KnowledgeDocument = { id: randomUUID(), projectId: input.projectId, name, content, status: 'indexing', mode: retrievalMode(), chunks: [], revision: 0, createdAt: now(), updatedAt: now() };
+  db().knowledge.push(doc);
+  await save();
+  res.status(202).json(ok(publicDocument(doc), req.traceId));
+  void indexDocument(doc).catch(() => { doc.status = 'failed'; doc.error = '资料保存失败，请重试'; });
+}));
+function knowledgeFor(id: string, userId: string) {
+  const doc = db().knowledge.find(item => item.id === id);
+  if (!doc) throw error('业务资料不存在', 404);
+  projectFor(doc.projectId, userId);
+  return doc;
+}
+app.get('/api/knowledge/:id', wrap(async (req, res) => {
+  const doc = knowledgeFor(req.params.id, req.user.id);
+  res.json(ok({ ...publicDocument(doc), content: doc.content }, req.traceId));
+}));
+app.post('/api/knowledge/:id/reindex', wrap(async (req, res) => {
+  const doc = knowledgeFor(req.params.id, req.user.id);
+  if (doc.status === 'indexing') throw error('资料正在索引，请稍后再试', 409);
+  doc.status = 'indexing'; doc.error = ''; doc.updatedAt = now();
+  await save();
+  res.status(202).json(ok(publicDocument(doc), req.traceId));
+  void indexDocument(doc).catch(() => { doc.status = 'failed'; doc.error = '资料保存失败，请重试'; });
+}));
+app.delete('/api/knowledge/:id', wrap(async (req, res) => {
+  const doc = knowledgeFor(req.params.id, req.user.id);
+  cancelIndex(doc.id);
+  db().knowledge = db().knowledge.filter(item => item.id !== doc.id);
+  await save();
+  res.json(ok(true, req.traceId));
+}));
+app.post('/api/knowledge/search', wrap(async (req, res) => {
+  const input = z.object({ projectId: z.string().uuid(), question: z.string().trim().min(2).max(500) }).parse(req.body);
+  projectFor(input.projectId, req.user.id);
+  res.json(ok(await retrieve(input.projectId, input.question), req.traceId));
+}));
+
+
 const plans = [
   { match: /相关|关系|关联/, type: 'correlation', title: '计算数值字段相关性' },
   { match: /趋势|变化|每月|月度/, type: 'groupby', title: '按维度计算趋势' },
@@ -932,18 +998,20 @@ const plans = [
 app.post(
   '/api/ai/plan',
   wrap(async (req, res) => {
-    const input = z.object({ datasetId: z.string().uuid(), question: z.string().min(2).max(500) }).parse(req.body);
+    const input = z.object({ datasetId: z.string().uuid(), question: z.string().trim().min(2).max(500), useKnowledge: z.boolean().default(false) }).parse(req.body);
     const d = datasetFor(input.datasetId, req.user.id);
     const rule = plans.find((x) => x.match.test(input.question)) || { type: 'descriptive', title: '生成基础数据画像' };
-    const number = d.fields.find((f) => f.type === 'number');
-    const text = d.fields.find((f) => f.type !== 'number');
+    const number = d.fields.filter(f => f.type === 'number' && input.question.includes(f.name)).sort((a, b) => b.name.length - a.name.length)[0] || d.fields.find(f => f.type === 'number');
+    const text = d.fields.filter(f => f.type !== 'number' && input.question.includes(f.name)).sort((a, b) => b.name.length - a.name.length)[0] || d.fields.find(f => f.type !== 'number');
+    const retrieval = await retrieve(d.projectId, input.question, input.useKnowledge);
     const plan = {
       type: rule.type,
       title: rule.title,
       datasetId: d.id,
       dimension: text?.name,
       metric: number?.name,
-      aggregate: 'sum',
+      aggregate: /平均|均值/.test(input.question) ? 'mean' : 'sum',
+      retrieval,
     };
     res.json(ok(plan, req.traceId));
   }),
@@ -954,7 +1022,8 @@ app.post(
     const input = z
       .object({
         datasetId: z.string().uuid(),
-        question: z.string().min(2).max(500),
+        question: z.string().trim().min(2).max(500),
+        useKnowledge: z.boolean().default(false),
         plan: z.object({
           type: z.enum(['descriptive', 'groupby', 'correlation']),
           dimension: z.string().optional(),
@@ -964,6 +1033,7 @@ app.post(
       })
       .parse(req.body);
     const d = datasetFor(input.datasetId, req.user.id);
+    const retrieval = await retrieve(d.projectId, input.question, input.useKnowledge);
     const start = Date.now();
     res.setHeader('content-type', 'text/event-stream; charset=utf-8');
     res.setHeader('cache-control', 'no-cache');
@@ -977,6 +1047,7 @@ app.post(
       if (!closed) res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
     };
     send('meta', { dataset: d.name, model: modelMode(), traceId: req.traceId });
+    send('sources', retrieval);
     try {
       send('progress', { stage: '正在执行已确认的分析计划', progress: 25 });
       const result = await compute(`/internal/analysis/${input.plan.type}`, { file: d.file, ...input.plan });
@@ -987,6 +1058,7 @@ app.post(
         dataset: d,
         plan: input.plan,
         result,
+        retrieval,
         sendToken: (text) => send('token', { text }),
         isClosed: () => closed,
       });
@@ -1001,12 +1073,13 @@ app.post(
           role: 'assistant',
           content: answer,
           result,
+          references: retrieval,
           durationMs: Date.now() - start,
           createdAt: now(),
         },
       );
       await save();
-      send('done', { sessionId: session.id, durationMs: Date.now() - start, source: d.name, result });
+      send('done', { sessionId: session.id, durationMs: Date.now() - start, source: d.name, result, retrieval });
       res.end();
     } catch (e) {
       send('error', { message: modelMode() === 'langchain' ? '模型解读失败，请检查模型服务配置后重试。统计计算结果仍可在分析页查看。' : errorMessage(e) });
@@ -1020,7 +1093,7 @@ app.use((err: Error & { status?: number }, req: Request, res: Response, _next: N
     ? 413
     : err.status || (err instanceof z.ZodError || err instanceof multer.MulterError ? 400 : 500);
   const message = uploadTooLarge
-    ? '文件超过 30 MB，请选择更小的 CSV 或 XLSX 文件。'
+    ? (req.path.startsWith('/api/knowledge') ? '业务资料文件超过 1 MB，请选择更小的 TXT 或 Markdown 文件。' : '文件超过 30 MB，请选择更小的 CSV 或 XLSX 文件。')
     : err instanceof z.ZodError
       ? err.issues.map((x) => x.message).join('; ')
       : err.message || '服务错误';
