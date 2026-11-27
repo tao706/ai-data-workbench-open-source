@@ -10,9 +10,9 @@
 
 ## 实际操作
 
-下面是核心操作预览，节选数据导入、清洗、可视化、AI 解读与报告保存的关键环节。当前预览保留原操作速度；新增业务资料与原文引用流程见下方完整演示和截图。
+下面是约 53 秒的核心操作预览，展示数据导入、清洗、可视化、业务资料上传、AI 解读与报告保存。文件选择、等待及部分重复操作已加速或剪短；AI 回复前约 2 秒的等待是剪辑效果，不代表实际接口耗时。
 
-![数据分析工作台核心操作预览](docs/images/workflow-demo.gif)
+![数据分析工作台核心操作预览](docs/images/workflow-demo.webp)
 
 [观看完整操作演示（约 147 秒，含业务资料与引用）](https://github.com/tao706/ai-data-workbench-open-source/blob/main/docs/videos/workflow-full.mp4)
 
@@ -115,7 +115,7 @@ Express 管理用户、项目、数据集、图表、报告和任务；FastAPI �
 `ChartView` 在 DOM 更新后监听容器引用：先断开旧的尺寸监听并销毁实例，再为新容器初始化。容器尺寸变化时通过 `ResizeObserver` 调整图表；组件卸载时清理监听和实例。切换图表类型时完整替换配置，避免上一种图表的坐标轴、图例或系列配置残留。预览请求另带递增序号，只有最新请求可以更新数据、错误和加载状态。
 
 - 实现：[图表组件](frontend/src/components/ChartView.vue)、[预览请求与字段校验](frontend/src/pages/Studio.vue)。横轴标签根据容器宽度采样，密集时旋转并隐藏重叠标签，悬浮提示保留完整数值。
-- 验证：[操作录屏](docs/images/workflow-demo.gif)展示多种图表切换与样式配置；[主流程测试](e2e/workflow.spec.ts)覆盖图表保存。当前尚无专门断言图表实例销毁和尺寸变化的自动化测试。
+- 验证：[操作录屏](docs/images/workflow-demo.webp)展示多种图表切换与样式配置；[主流程测试](e2e/workflow.spec.ts)覆盖图表保存。当前尚无专门断言图表实例销毁和尺寸变化的自动化测试。
 
 ### 请求失败后，用户能看到原因并继续操作
 
